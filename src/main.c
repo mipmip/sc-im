@@ -430,8 +430,8 @@ void read_stdin() {
     if (f != NULL) fclose(f);
 
     if ( ! freopen("/dev/tty", "rw", stdin)) {
-        perror(NULL);
-        exit(-1);
+      perror(NULL);
+      exit(-1);
     }
     //sc_debug("finish reading");
 }
@@ -858,7 +858,7 @@ void show_usage_and_quit(){
 \n  --ignorecase                Set variable 'ignorecase'\
 \n  --import_delimited_as_text Import text as\
 \n  --newline_action={j or l}   Set variable 'newline_action'\
-\n  --nocurses                  Run interactive but without ncurses interface.\
+\n  --nocurses                  Run but without ncurses interface\
 \n  --numeric                   Set variable 'numeric'\
 \n  --numeric_decimal           Set variable 'numeric_decimal'\
 \n  --output=FILE               Save the results in FILE\
