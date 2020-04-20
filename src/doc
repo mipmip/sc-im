@@ -1717,13 +1717,16 @@ Commands for handling cell content:
 &Supported file formats / File import&
 
     SC-IM can open the following file formats:
-        .sc     SC-IM's native text format
-        .xls    Microsoft Excel Spreadsheet
-        .xlsx   Microsoft Office Open XML Workbook
-        .csv    Comma-separated values
-        .tsv    Tab-separated values
-        .tab    Tab-separated values
-        .txt    Simple text files
+        .sc        SC-IM's native text format
+        .xls       Microsoft Excel Spreadsheet
+        .xlsx      Microsoft Office Open XML Workbook
+        .csv       Comma-separated values
+        .tsv       Tab-separated values
+        .tab       Tab-separated values
+        .txt       Simple text files
+        .mkd       Markdown file with only table contents
+        .md        Markdown file with only table contents
+        .markdown  Markdown file with only table contents
 
     You can pass files of any of the above formats to SC-IM binary.
     If you pass a .txt or .csv file to SC-IM, it is imported using a comma as
