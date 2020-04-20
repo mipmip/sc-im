@@ -619,7 +619,7 @@ void write_marks(register FILE *f) {
         m = get_mark((char) i);
 
         // m->rng should never be NULL if both m->col and m->row are -1 !!
-        if ( m->row == -1 && m->col == -1) { // && m->rng != NULL ) {  
+        if ( m->row == -1 && m->col == -1) { // && m->rng != NULL ) {
             fprintf(f, "mark %c %s%d ", i, coltoa(m->rng->tlcol), m->rng->tlrow);
             fprintf(f, "%s%d\n", coltoa(m->rng->brcol), m->rng->brrow);
         } else if ( m->row != 0 && m->row != 0) { // && m->rng == NULL) {
@@ -795,6 +795,17 @@ sc_readfile_result readfile(char * fname, int eraseflg) {
         ! strcasecmp( & fname[len-4], ".txt") )){
 
         import_csv(fname, get_delim(&fname[len-3])); // csv tsv tab txt delim import
+        strcpy(curfile, fname);
+        modflg = 0;
+        loading = 0;
+        return SC_READFILE_SUCCESS;
+
+    // If file is a markdown text file, we try to import it
+    } else if (len > 3 && ( ! strcasecmp( & fname[len-3], ".md"))){
+
+        //char delim = ',';
+
+        import_markdown(fname);
         strcpy(curfile, fname);
         modflg = 0;
         loading = 0;
@@ -1025,7 +1036,6 @@ void print_options(FILE *f) {
     (void) fprintf(f, "\n");
 }
 
-
 /**
  * \brief Import csv to sc
  *
@@ -1133,6 +1143,170 @@ int import_csv(char * fname, char d) {
 
         r++;
         if (r > MAXROWS - GROWAMT - 1 || c > ABSMAXCOLS - 1) break;
+    }
+    maxrow = r-1;
+    maxcol = cf-1;
+
+    auto_justify(0, maxcols, DEFWIDTH);
+
+    fclose(f);
+
+    EvalAll();
+    return 0;
+}
+
+/**
+ * \brief Import Markdown to sc
+ *
+ * \param[in] fname file name
+ * \param[in] d
+ *
+ * \return 0 on success; -1 on error
+ */
+
+int import_markdown(char * fname) {
+    register FILE * f;
+    int r = 0, c = 0, cf = 0;
+    wchar_t line_interp[FBUFLEN] = L"";
+    wchar_t line_interp_align[FBUFLEN] = L"";
+    char * token;
+
+    int pipe = 0; // if value has '"'. ex: 12,"1234,450.00",56
+    int rownr = 0;
+    char d = '|';
+    char delim[2] = ""; //strtok receives a char *, not a char
+    add_char(delim, d, 0);
+//    int linenumber = 0;
+
+    if ((f = fopen(fname , "r")) == NULL) {
+        sc_error("Can't read file \"%s\"", fname);
+        return -1;
+    }
+
+    // Check max length of line
+    int max = max_length(f) + 1;
+    if (max == 0) {
+        sc_error("Can't read file \"%s\"", fname);
+        return -1;
+    }
+    char line_in[max];
+    char line_in_head[max];
+    char align[max];
+    rewind(f);
+
+    while ( ! feof(f) && (fgets(line_in, sizeof(line_in), f) != NULL) ) {
+
+      // this hack is for importing file that have DOS eol
+      int l = strlen(line_in);
+      while (l--){
+        if (line_in[l] == 0x0d) {
+          line_in[l] = '\0';
+          break;
+        }
+      }
+
+      /*
+      if ( line_in[0] == '|' && line_in[strlen(line_in)-1] == '|') {
+        pipe = 1;
+      }
+      */
+      pipe = 0;
+      del_char(line_in, 0);
+      del_char(line_in, strlen(line_in)-1);
+
+      if(r==1){
+        strcpy(line_in_head, line_in);
+
+        token = xstrtok(line_in_head, delim);
+        c = 0;
+
+        while( token != NULL ) {
+          if (r > MAXROWS - GROWAMT - 1 || c > ABSMAXCOLS - 1) break;
+          clean_carrier(token);
+          token = ltrim(token, ' ');
+          token = rtrim(token, ' ');
+
+          if((token[0] == ':' && token[strlen(token)-1] == '-') ||
+             (token[0] == '-' && token[strlen(token)-1] == '-')){
+            align[c] = 'l';
+            swprintf(line_interp_align, BUFFERSIZE, L"leftjustify %s", v_name(r-1, c));
+
+          }
+          else if(token[0] == '-' && token[strlen(token)-1] == ':'){
+            align[c] = 'r';
+            swprintf(line_interp_align, BUFFERSIZE, L"rightjustify %s", v_name(r-1, c));
+          }
+          else{
+            swprintf(line_interp_align, BUFFERSIZE, L"center %s", v_name(r-1, c));
+            align[c] = 'c';
+          }
+
+          send_to_interp(line_interp_align);
+          token = xstrtok(NULL, delim);
+          c++;
+        }
+      }
+      else{
+
+        // Split string using the delimiter
+        token = xstrtok(line_in, delim);
+
+        c = 0;
+
+        while( token != NULL ) {
+          if (r > MAXROWS - GROWAMT - 1 || c > ABSMAXCOLS - 1) break;
+
+          if(r == 0){
+            rownr = r;
+          }
+          else{
+            rownr = r-1;
+          }
+
+          clean_carrier(token);
+          token = ltrim(token, ' ');
+          token = rtrim(token, ' ');
+
+          char * st = str_replace(token, "\"", "''"); //replace double quotes inside string
+
+          // number import
+          if (isnumeric(st) && strlen(st) && ! atoi(get_conf_value("import_delimited_as_text"))) {
+            //wide char
+            swprintf(line_interp, BUFFERSIZE, L"let %s%d=%s", coltoa(c), rownr, st);
+
+            // text import
+          } else if (strlen(st)){
+            //wide char
+            swprintf(line_interp, BUFFERSIZE, L"label %s%d=\"%s\"", coltoa(c), rownr, st);
+          }
+          //wide char
+          if (strlen(st)){
+            send_to_interp(line_interp);
+
+            if(r>0){
+              if(align[c] == 'l'){
+                swprintf(line_interp_align, BUFFERSIZE, L"leftjustify %s", v_name(rownr, c));
+              }
+              else if(align[c] == 'r'){
+                swprintf(line_interp_align, BUFFERSIZE, L"rightjustify %s", v_name(rownr, c));
+              }
+              else{
+                swprintf(line_interp_align, BUFFERSIZE, L"center %s", v_name(rownr, c));
+              }
+              send_to_interp(line_interp_align);
+            }
+
+          }
+          free(st);
+
+          if (++c > cf) cf = c;
+          token = xstrtok(NULL, delim);
+        }
+      }
+
+      maxcol = cf-1;
+      r++;
+      if (r > MAXROWS - GROWAMT - 1 || c > ABSMAXCOLS - 1) break;
     }
     maxrow = r-1;
     maxcol = cf-1;

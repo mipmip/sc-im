@@ -403,12 +403,16 @@ Commands for handling cell content:
                  Load {file} into the SC-IM database.
 
                  {file} can be an sc format file (.sc), a comma-separated file
-                 (.csv), a tab-separated file (.tab, .tsv), an xlsx or xls
-                 file.
+                 (.csv), a tab-separated file (.tab, .tsv),a markdown table
+                 file (.md, mkd, .markdown), an xlsx or xls file.
 
                  If loading a csv, tab or tsv file and
                  'import_delimited_as_text' configuration variable is set
                  Sc-im will import numbers as text.
+
+                 If loading a markdown file  and 'import_delimited_as_text'
+                 configuration variable is set Sc-im will import numbers as
+                 text. The markdown file should only contain table content.
 
                  If loading an xlsx file and 'xlsx_readformulas' is set, Sc-im
                  will try to import formulas, rather than the final values of
