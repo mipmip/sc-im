@@ -301,6 +301,12 @@ int savefile() {
         export_delim(curfile, '\t', 0, 0, maxrow, maxcol, 1);
         modflg = 0;
         return 0;
+
+    } else if (strlen(curfile) > 3 && ( ! strcasecmp( & curfile[strlen(curfile)-3], ".md") ||
+        ! strcasecmp( & curfile[strlen(curfile)-4], ".mkd"))){
+        export_markdown(curfile, 0, 0, maxrow, maxcol);
+        modflg = 0;
+        return 0;
     }
 
     // save in sc format
@@ -801,10 +807,8 @@ sc_readfile_result readfile(char * fname, int eraseflg) {
         return SC_READFILE_SUCCESS;
 
     // If file is a markdown text file, we try to import it
-    } else if (len > 3 && ( ! strcasecmp( & fname[len-3], ".md"))){
-
-        //char delim = ',';
-
+    } else if (len > 3 && ( ! strcasecmp( & fname[len-3], ".md") ||
+        ! strcasecmp( & fname[len-4], ".mkd"))){
         import_markdown(fname);
         strcpy(curfile, fname);
         modflg = 0;
@@ -1171,7 +1175,7 @@ int import_markdown(char * fname) {
     wchar_t line_interp_align[FBUFLEN] = L"";
     char * token;
 
-    int pipe = 0; // if value has '"'. ex: 12,"1234,450.00",56
+    //int pipe = 0; // if value has '"'. ex: 12,"1234,450.00",56
     int rownr = 0;
     char d = '|';
     char delim[2] = ""; //strtok receives a char *, not a char
@@ -1210,7 +1214,7 @@ int import_markdown(char * fname) {
         pipe = 1;
       }
       */
-      pipe = 0;
+      //pipe = 0;
       del_char(line_in, 0);
       del_char(line_in, strlen(line_in)-1);
 
