@@ -1,0 +1,9 @@
+| code                | omschrijving                                     | contactpersoon          | email                               |
+|---------------------|--------------------------------------------------|-------------------------|-------------------------------------|
+| STRIP-VERDER-01     | Strippenkaart Verder 50 uur.                     | Jeroen van Oosterhout   | Jeroen.van.Oosterhout@verder.com    |
+| STRIP-DGI-02        | Strippenkaart 50 uur                             | Dorrie van Dijsselbloem | dorrie.dijsselbloem@dgi-company.com |
+| STRIP-CCV-07-KEURM  | Strippenkaart 50 uur Het CCV Keurmerken          | Gisela van Blokland     | Gisela.vanBlokland@hetccv.nl        |
+| STRIP-CCV-06-THEMAS | Strippenkaart 100 uur - thema sites              | Harmen Greven           | harmen.greven@hetccv.nl             |
+| STRIP-CCV-05-ALG    | Strippenkaart 100 uur -  hetccv.nl               | Harmen Greven           | harmen.greven@hetccv.nl             |
+| STRIP-CCV-04-KEURM  | Strippenkaart 50 uur tbv CCV Keurmerken          | Gisela van Blokland     | Gisela.vanBlokland@hetccv.nl        |
+| jajaja              | Strippenkaart 100 uur Web Development & Training | Hans de Jong            | h.de.jong@buwa.nl                   |
