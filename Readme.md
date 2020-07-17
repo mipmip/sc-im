@@ -47,7 +47,11 @@ SC-IM stands for Spreadsheet Calculator Improvised. :-)
 
 * Run `make`:
 ```
+# gcc8:
     make -C src
+
+# gcc>8:
+	make CC='gcc -fcommon' -C src
 ```
 
 * Optional: You can install the binary `sc-im` in your system by typing with a privileged user:
