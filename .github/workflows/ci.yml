@@ -22,6 +22,8 @@ jobs:
       - run: make -C src
         env:
           CC: ${{ matrix.cc }}
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
       - run: cd ./tests && ./run_all_tests.sh
         shell: bash
         env:
