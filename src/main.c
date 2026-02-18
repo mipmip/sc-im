@@ -419,32 +419,50 @@ void create_structures() {
  */
 void read_stdin() {
     //sc_debug("reading stdin from pipeline");
+    sc_info("-DEBUGCICRASH9.1");
     fd_set readfds;
+    sc_info("-DEBUGCICRASH9.2");
     FD_ZERO(&readfds);
+    sc_info("-DEBUGCICRASH9.3");
     FD_SET(STDIN_FILENO, &readfds);
+    sc_info("-DEBUGCICRASH9.4");
     fd_set savefds = readfds;
+    sc_info("-DEBUGCICRASH9.5");
     struct timeval timeout;
+    sc_info("-DEBUGCICRASH9.6");
     timeout.tv_sec = 0;
     timeout.tv_usec = 0;
     FILE * f = stdin;
+    sc_info("-DEBUGCICRASH9.7");
     //FILE * f = fopen("/dev/tty", "rw");
     wchar_t stdin_buffer[BUFFERSIZE] = { L'\0' };
 
     if (select(1, &readfds, NULL, NULL, &timeout)) {
+        sc_info("-DEBUGCICRASH9.8");
         //sc_debug("there is data");
         while (f != NULL && fgetws(stdin_buffer, BUFFERSIZE, f) != NULL) {
+            sc_info("-DEBUGCICRASH9.9");
             sc_debug("Interp will receive: %ls", stdin_buffer);
+            sc_info("-DEBUGCICRASH9.10");
             send_to_interp(stdin_buffer);
+            sc_info("-DEBUGCICRASH9.11");
         }
         fflush(f);
+        sc_info("-DEBUGCICRASH9.12");
     } else {
+        sc_info("-DEBUGCICRASH9.13");
         //sc_debug("there is NO data");
     }
+    sc_info("-DEBUGCICRASH9.14");
     readfds = savefds;
+    sc_info("-DEBUGCICRASH9.15");
     if (f != NULL) fclose(f);
+    sc_info("-DEBUGCICRASH9.16");
 
     if ( ! freopen("/dev/tty", "rw", stdin)) {
+        sc_info("-DEBUGCICRASH9.17");
         perror(NULL);
+        sc_info("-DEBUGCICRASH9.18");
         exit(-1);
     }
     //sc_debug("finish reading");
