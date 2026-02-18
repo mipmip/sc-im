@@ -24,6 +24,8 @@ jobs:
           CC: ${{ matrix.cc }}
       #- name: Setup tmate session
       #  uses: mxschmitt/action-tmate@v3
+      - run: ./src/sc-im --version
+      - run: echo "hello"
       - run: cd ./tests && ./run_all_tests.sh
         #shell: bash
         #env:
