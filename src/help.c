@@ -543,6 +543,7 @@ void show_version_and_quit() {
     sc_info("-DAUTOBACKUP");
 #endif
     put(user_conf_d, "quit_afterload", "1");
+    sc_info("-DEBUGCICRASH");
 }
 
 
