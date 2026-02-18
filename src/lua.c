@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013-2021, Andrés Martinelli <andmarti@gmail.com>             *
+ * Copyright (c) 2013-2025, Andrés G. Martinelli <andmarti@gmail.com>          *
  * All rights reserved.                                                        *
  *                                                                             *
  * This file is a part of sc-im                                                *
@@ -17,16 +17,16 @@
  *    documentation and/or other materials provided with the distribution.     *
  * 3. All advertising materials mentioning features or use of this software    *
  *    must display the following acknowledgement:                              *
- *    This product includes software developed by Andrés Martinelli            *
+ *    This product includes software developed by Andrés G. Martinelli         *
  *    <andmarti@gmail.com>.                                                    *
- * 4. Neither the name of the Andrés Martinelli nor the                        *
+ * 4. Neither the name of the Andrés G. Martinelli nor the                     *
  *   names of other contributors may be used to endorse or promote products    *
  *   derived from this software without specific prior written permission.     *
  *                                                                             *
- * THIS SOFTWARE IS PROVIDED BY ANDRES MARTINELLI ''AS IS'' AND ANY            *
+ * THIS SOFTWARE IS PROVIDED BY ANDRÉS G. MARTINELLI ''AS IS'' AND ANY         *
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED   *
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE      *
- * DISCLAIMED. IN NO EVENT SHALL ANDRES MARTINELLI BE LIABLE FOR ANY           *
+ * DISCLAIMED. IN NO EVENT SHALL ANDRÉS G. MARTINELLI BE LIABLE FOR ANY        *
  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES  *
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;*
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND *
@@ -37,7 +37,7 @@
 
 /**
  * \file lua.c
- * \author Andrés Martinelli <andmarti@gmail.com>
+ * \author Andrés G. Martinelli <andmarti@gmail.com>
  * \date 2017-07-18
  * \brief TODO Write a brief file description.
  */
@@ -386,6 +386,8 @@ void doLuaclose() {
 char * doLUA(struct sheet * sh, struct ent * ent, struct enode * se, int dg_store) {
     if ( ! get_conf_int("exec_lua")) return 0;
     char * cmd;
+    struct roman * roman = session->cur_doc;
+    int reallyloading=roman->loading;   /* cache the file loading status */
     int return_type;
     int row,col;
     char buffer[PATHLEN];
@@ -410,9 +412,11 @@ char * doLUA(struct sheet * sh, struct ent * ent, struct enode * se, int dg_stor
         lua_setglobal(L, "r");
         lua_pushinteger(L,col);
         lua_setglobal(L, "c");
+        roman->loading=1;         /* treat as loading to prevent entry to undo_list */
 
         if (lua_pcall(L, 0, 1, 0)) {                  /* PRIMING RUN. FORGET THIS AND YOU'RE TOAST */
             ui_bail(L, "lua_pcall() failed");       /* Error out if Lua file has an error */
+            roman->loading=reallyloading;
             return (NULL);
         }
 
@@ -422,6 +426,7 @@ char * doLUA(struct sheet * sh, struct ent * ent, struct enode * se, int dg_stor
     if (cmd != NULL) free(cmd);
 
     return_type = lua_type(L, -1);
+    roman->loading=reallyloading;
     switch (return_type) {
         case LUA_TSTRING:
             ;

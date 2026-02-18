@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013-2021, Andrés Martinelli <andmarti@gmail.com>             *
+ * Copyright (c) 2013-2025, Andrés G. Martinelli <andmarti@gmail.com>          *
  * All rights reserved.                                                        *
  *                                                                             *
  * This file is a part of sc-im                                                *
@@ -17,16 +17,16 @@
  *    documentation and/or other materials provided with the distribution.     *
  * 3. All advertising materials mentioning features or use of this software    *
  *    must display the following acknowledgement:                              *
- *    This product includes software developed by Andrés Martinelli            *
+ *    This product includes software developed by Andrés G. Martinelli         *
  *    <andmarti@gmail.com>.                                                    *
- * 4. Neither the name of the Andrés Martinelli nor the                        *
+ * 4. Neither the name of the Andrés G. Martinelli nor the                     *
  *   names of other contributors may be used to endorse or promote products    *
  *   derived from this software without specific prior written permission.     *
  *                                                                             *
- * THIS SOFTWARE IS PROVIDED BY ANDRES MARTINELLI ''AS IS'' AND ANY            *
+ * THIS SOFTWARE IS PROVIDED BY ANDRÉS G. MARTINELLI ''AS IS'' AND ANY         *
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED   *
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE      *
- * DISCLAIMED. IN NO EVENT SHALL ANDRES MARTINELLI BE LIABLE FOR ANY           *
+ * DISCLAIMED. IN NO EVENT SHALL ANDRÉS G. MARTINELLI BE LIABLE FOR ANY        *
  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES  *
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;*
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND *
@@ -37,7 +37,7 @@
 
 /**
  * \file cmds.c
- * \author Andrés Martinelli <andmarti@gmail.com>
+ * \author Andrés G. Martinelli <andmarti@gmail.com>
  * \date 05/04/2021
  * \brief TODO Write brief file description
  */
@@ -575,8 +575,8 @@ struct enode * copye(struct enode *e, struct sheet * sh, int Rdelta, int Cdelta,
         ret->op = e->op;
         //ret->e.s = NULL;
         //ret->e.o.s = NULL;
-        ret->e.r.left.expr = e->e.r.left.expr ? copye(e->e.r.left.expr, e->e.r.left.sheet, Rdelta, Cdelta, r1, c1, r2, c2, special) : NULL; // important to initialize
-        ret->e.r.right.expr = e->e.r.right.expr ? copye(e->e.r.right.expr, e->e.r.right.sheet, Rdelta, Cdelta, r1, c1, r2, c2, special) : NULL; // important to initialize
+        ret->e.r.left.expr = e->e.r.left.expr ? copye(e->e.r.left.expr, e->e.r.left.sheet != NULL ? e->e.r.left.sheet : sh, Rdelta, Cdelta, r1, c1, r2, c2, special) : NULL; // important to initialize
+        ret->e.r.right.expr = e->e.r.right.expr ? copye(e->e.r.right.expr, e->e.r.right.sheet != NULL ? e->e.r.right.sheet : sh , Rdelta, Cdelta, r1, c1, r2, c2, special) : NULL; // important to initialize
         newrow = e->e.r.left.vf & FIX_ROW || e->e.r.left.vp->row < r1 || e->e.r.left.vp->row > r2 || e->e.r.left.vp->col < c1 || e->e.r.left.vp->col > c2 ?  e->e.r.left.vp->row : special == 1 ? r1 + Rdelta + e->e.r.left.vp->col - c1 : e->e.r.left.vp->row + Rdelta;
         newcol = e->e.r.left.vf & FIX_COL || e->e.r.left.vp->row < r1 || e->e.r.left.vp->row > r2 || e->e.r.left.vp->col < c1 || e->e.r.left.vp->col > c2 ?  e->e.r.left.vp->col : special == 1 ? c1 + Cdelta + e->e.r.left.vp->row - r1 : e->e.r.left.vp->col + Cdelta;
         ret->e.r.left.vp = lookat(sh, newrow, newcol);

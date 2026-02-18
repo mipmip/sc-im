@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013-2021, Andrés Martinelli <andmarti@gmail.com>             *
+ * Copyright (c) 2013-2025, Andrés G. Martinelli <andmarti@gmail.com>          *
  * All rights reserved.                                                        *
  *                                                                             *
  * This file is a part of sc-im                                                *
@@ -17,16 +17,16 @@
  *    documentation and/or other materials provided with the distribution.     *
  * 3. All advertising materials mentioning features or use of this software    *
  *    must display the following acknowledgement:                              *
- *    This product includes software developed by Andrés Martinelli            *
+ *    This product includes software developed by Andrés G. Martinelli         *
  *    <andmarti@gmail.com>.                                                    *
- * 4. Neither the name of the Andrés Martinelli nor the                        *
+ * 4. Neither the name of the Andrés G. Martinelli nor the                     *
  *   names of other contributors may be used to endorse or promote products    *
  *   derived from this software without specific prior written permission.     *
  *                                                                             *
- * THIS SOFTWARE IS PROVIDED BY ANDRES MARTINELLI ''AS IS'' AND ANY            *
+ * THIS SOFTWARE IS PROVIDED BY ANDRÉS G. MARTINELLI ''AS IS'' AND ANY         *
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED   *
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE      *
- * DISCLAIMED. IN NO EVENT SHALL ANDRES MARTINELLI BE LIABLE FOR ANY           *
+ * DISCLAIMED. IN NO EVENT SHALL ANDRÉS G. MARTINELLI BE LIABLE FOR ANY        *
  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES  *
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;*
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND *
@@ -37,7 +37,7 @@
 
 /**
  * \file function.c
- * \author Andrés Martinelli <andmarti@gmail.com>
+ * \author Andrés G. Martinelli <andmarti@gmail.com>
  * \date 24/05/2021
  * \brief Source file that implement the different functions that sc-im can handle
  * Based on sc
@@ -585,7 +585,10 @@ double dodts(int e1, int e2, int e3) {
     t.tm_isdst = -1;
 
     if (mo < 0 || mo > 11 || day < 1 || day > mdays[mo] || (secs = mktime(&t)) == -1) {
-        sc_error("@dts: invalid argument or date out of range");
+        if(day==0)
+            sc_info("@dts: day = 0, possible error");
+        else
+            sc_error("@dts: invalid argument or date out of range");
         cellerror = CELLERROR;
         return (0.0);
     }
@@ -1011,7 +1014,21 @@ char * dosval(struct sheet * sh, char * colstr, double rowdoub) {
  * \return char *
  */
 char * doreplace(char * source, char * old, char * newstr) {
-    return str_replace(source, old, newstr);
+    char *ret;
+    if(source == NULL || strlen(old)==0){
+        scxfree(old);
+        scxfree(newstr);
+        if(source)
+            scxfree(source);
+        return NULL;
+    }else{
+        ret = str_replace(source, old, newstr);
+        scxfree(old);
+        if(newstr != NULL)
+            scxfree(newstr);
+        scxfree(source);
+    }
+    return ret;
 }
 
 
@@ -1054,16 +1071,17 @@ char * dosubstr(char * s, int v1, int v2) {
  */
 char * dosevaluate(char * s) {
     if ( !s ) return ((char *) 0);
-    char * p;
+    char * p=NULL;
 
     wchar_t cline [BUFFERSIZE];
     swprintf(cline, BUFFERSIZE, L"seval %s", s);
     send_to_interp(cline);
 
-    p = scxmalloc(sizeof(char) * strlen(seval_result)+1);
-    strcpy(p, seval_result);
-    free(seval_result);
-
+    if(seval_result != NULL){
+        p = scxmalloc(sizeof(char) * strlen(seval_result)+1);
+        strcpy(p, seval_result);
+        free(seval_result);
+    }
     scxfree(s);
     return p;
 }

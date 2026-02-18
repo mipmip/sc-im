@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013-2021, Andrés Martinelli <andmarti@gmail.com>             *
+ * Copyright (c) 2013-2025, Andrés G. Martinelli <andmarti@gmail.com>          *
  * All rights reserved.                                                        *
  *                                                                             *
  * This file is a part of sc-im                                                *
@@ -17,16 +17,16 @@
  *    documentation and/or other materials provided with the distribution.     *
  * 3. All advertising materials mentioning features or use of this software    *
  *    must display the following acknowledgement:                              *
- *    This product includes software developed by Andrés Martinelli            *
+ *    This product includes software developed by Andrés G. Martinelli         *
  *    <andmarti@gmail.com>.                                                    *
- * 4. Neither the name of the Andrés Martinelli nor the                        *
+ * 4. Neither the name of the Andrés G. Martinelli nor the                     *
  *   names of other contributors may be used to endorse or promote products    *
  *   derived from this software without specific prior written permission.     *
  *                                                                             *
- * THIS SOFTWARE IS PROVIDED BY ANDRES MARTINELLI ''AS IS'' AND ANY            *
+ * THIS SOFTWARE IS PROVIDED BY ANDRÉS G. MARTINELLI ''AS IS'' AND ANY         *
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED   *
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE      *
- * DISCLAIMED. IN NO EVENT SHALL ANDRES MARTINELLI BE LIABLE FOR ANY           *
+ * DISCLAIMED. IN NO EVENT SHALL ANDRÉS G. MARTINELLI BE LIABLE FOR ANY        *
  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES  *
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;*
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND *
@@ -37,7 +37,7 @@
 
 /**
  * \file tui.c
- * \author Andrés Martinelli <andmarti@gmail.com>
+ * \author Andrés G. Martinelli <andmarti@gmail.com>
  * \date 2017-07-18
  * \brief  This is the ncurses implementation of sc-im user interface,
  *
@@ -81,6 +81,7 @@
 #include <locale.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <signal.h>  
 
 #include "main.h"
 #include "macros.h"
@@ -309,7 +310,7 @@ void ui_sc_msg(char * s, int type, ...) {
  */
 void ui_do_welcome() {
     char * msg_title = "sc-im - SpreadSheet Calculator Improvised";
-    char * msg_by = "An SC fork by Andrés Martinelli";
+    char * msg_by = "An SC fork by Andrés G. Martinelli";
     char * msg_version = rev;
     char * msg_help  = "Press  :help<Enter>  to get help         ";
     char * msg_help2 = "Press  <Enter>       to enter NORMAL mode";
@@ -1335,7 +1336,7 @@ void ui_show_text(char * val) {
  * UI function that's called after SIGWINCH signal.
  * \return none
  */
-void sig_winchg() {
+void sig_winchg(int signum) {
     if (isendwin()) return;
     endwin();
     refresh();
@@ -1586,7 +1587,7 @@ void ui_resume() {
     set_term(sstdout);
     reset_prog_mode();
     clearok(stdscr, TRUE);
-    sig_winchg();
+    sig_winchg(SIGWINCH);
 
     return;
 }

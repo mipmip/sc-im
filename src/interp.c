@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013-2021, Andrés Martinelli <andmarti@gmail.com>             *
+ * Copyright (c) 2013-2025, Andrés G. Martinelli <andmarti@gmail.com>          *
  * All rights reserved.                                                        *
  *                                                                             *
  * This file is a part of sc-im                                                *
@@ -17,16 +17,16 @@
  *    documentation and/or other materials provided with the distribution.     *
  * 3. All advertising materials mentioning features or use of this software    *
  *    must display the following acknowledgement:                              *
- *    This product includes software developed by Andrés Martinelli            *
+ *    This product includes software developed by Andrés G. Martinelli         *
  *    <andmarti@gmail.com>.                                                    *
- * 4. Neither the name of the Andrés Martinelli nor the                        *
+ * 4. Neither the name of the Andrés G. Martinelli nor the                     *
  *   names of other contributors may be used to endorse or promote products    *
  *   derived from this software without specific prior written permission.     *
  *                                                                             *
- * THIS SOFTWARE IS PROVIDED BY ANDRES MARTINELLI ''AS IS'' AND ANY            *
+ * THIS SOFTWARE IS PROVIDED BY ANDRÉS G. MARTINELLI ''AS IS'' AND ANY         *
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED   *
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE      *
- * DISCLAIMED. IN NO EVENT SHALL ANDRES MARTINELLI BE LIABLE FOR ANY           *
+ * DISCLAIMED. IN NO EVENT SHALL ANDRÉS G. MARTINELLI BE LIABLE FOR ANY        *
  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES  *
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;*
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND *
@@ -37,7 +37,7 @@
 
 /**
  * \file interp.c
- * \author Andrés Martinelli <andmarti@gmail.com>
+ * \author Andrés G. Martinelli <andmarti@gmail.com>
  * \date 24/05/2021
  * \brief source file that implements the eval seval functions
  * Based on SC
@@ -90,9 +90,9 @@ extern struct session * session;
 extern graphADT graph;
 extern WINDOW * input_win;
 
-void exit_app();
-double fn1_eval      (double (* fn)(), double arg);
-double fn2_eval      (double (* fn)(), double arg1, double arg2);
+void exit_app(int signum);
+double fn1_eval(double (*fn)(double), double arg);
+double fn2_eval(double (*fn)(double, double), double arg1, double arg2);
 int    constant      (struct enode * e);
 void   copydbuf      (int deltar, int deltac);
 void   decompile     (struct enode * e, int priority);
@@ -323,10 +323,43 @@ double eval(struct sheet * sh, struct ent * ent, struct enode * e, int rebuild_g
         int r, c, row, col;
         int maxr, maxc;
         int minr, minc;
-        maxr = e->e.o.left->e.r.right.vp->row;
-        maxc = e->e.o.left->e.r.right.vp->col;
-        minr = e->e.o.left->e.r.left.vp->row;
-        minc = e->e.o.left->e.r.left.vp->col;
+        // Send range limits to eval if expressions and add to graph
+        if(e->e.o.left->e.r.right.expr == NULL){
+            maxr = e->e.o.left->e.r.right.vp->row;
+            maxc = e->e.o.left->e.r.right.vp->col;
+        }else {
+            maxr = eval(sh,ent,e->e.o.left->e.r.right.expr->e.o.left,rebuild_graph);
+            maxc = eval(sh,ent,e->e.o.left->e.r.right.expr->e.o.right,rebuild_graph);
+            // find the address of the cell with an expression defining a range limit and add it
+            // to the graph if it exits.  Should probably have some intermediate variables for
+            // readability.
+            if(e->e.o.left->e.r.right.expr->e.o.left->e.v.vp != NULL)
+                GraphAddEdge(getVertex(graph, sh, lookat(sh, ent->row, ent->col), 1),
+                        // digging deep to get the row/col of the cell we depend on
+                        getVertex(graph, sh, lookat(sh, e->e.o.left->e.r.right.expr->e.o.left->e.v.vp->row, e->e.o.left->e.r.right.expr->e.o.left->e.v.vp->row), 1));
+            if(e->e.o.left->e.r.right.expr->e.o.right->e.v.vp != NULL)
+                GraphAddEdge(getVertex(graph, sh, lookat(sh, ent->row, ent->col), 1),
+                        getVertex(graph, sh, lookat(sh, e->e.o.left->e.r.right.expr->e.o.left->e.v.vp->row, e->e.o.left->e.r.right.expr->e.o.right->e.v.vp->row), 1));
+        }
+        if(e->e.o.left->e.r.left.expr == NULL){
+            minr = e->e.o.left->e.r.left.vp->row;
+            minc = e->e.o.left->e.r.left.vp->col;
+        }else {
+            minr = eval(sh,ent,e->e.o.left->e.r.left.expr->e.o.left,rebuild_graph);
+            minc = eval(sh,ent,e->e.o.left->e.r.left.expr->e.o.right,rebuild_graph);
+            if(e->e.o.left->e.r.left.expr->e.o.left->e.v.vp != NULL)
+                GraphAddEdge(getVertex(graph, sh, lookat(sh, ent->row, ent->col), 1),
+                        getVertex(graph, sh, lookat(sh, e->e.o.left->e.r.left.expr->e.o.left->e.v.vp->row, e->e.o.left->e.r.left.expr->e.o.left->e.v.vp->row), 1));
+            if(e->e.o.left->e.r.left.expr->e.o.right->e.v.vp != NULL)
+                GraphAddEdge(getVertex(graph, sh, lookat(sh, ent->row, ent->col), 1),
+                        getVertex(graph, sh, lookat(sh, e->e.o.left->e.r.left.expr->e.o.right->e.v.vp->row, e->e.o.left->e.r.left.expr->e.o.right->e.v.vp->row), 1));
+        }
+        //  same as above but rebuilds the whole graph every time
+        //maxr = e->e.o.left->e.r.right.expr == NULL ? e->e.o.left->e.r.right.vp->row : eval(sh,ent,e->e.o.left->e.r.right.expr->e.o.left,1);
+        //maxc = e->e.o.left->e.r.right.expr == NULL ? e->e.o.left->e.r.right.vp->col : eval(sh,ent,e->e.o.left->e.r.right.expr->e.o.right,1);
+        //minr = e->e.o.left->e.r.left.expr  == NULL ? e->e.o.left->e.r.left.vp->row  : eval(sh,ent,e->e.o.left->e.r.left.expr->e.o.left,1);
+        //minc = e->e.o.left->e.r.left.expr  == NULL ? e->e.o.left->e.r.left.vp->col  : eval(sh,ent,e->e.o.left->e.r.left.expr->e.o.right,1);
+        //
         if (minr>maxr) r = maxr, maxr = minr, minr = r;
         if (minc>maxc) c = maxc, maxc = minc, minc = c;
 
@@ -585,6 +618,8 @@ char * seval(struct sheet * sh, struct ent * ent, struct enode * se, int rebuild
 
             if (rebuild_graph && vp && vp->row == ent->row && vp->col == ent->col && sh_vp == sh) {
                 sc_error("Circular reference in seval");
+                se->e.o.left = NULL;
+                se->e.o.right = NULL;
                 se->op = ERR_;
                 cellerror = CELLERROR;
                 return (NULL);
@@ -628,7 +663,7 @@ char * seval(struct sheet * sh, struct ent * ent, struct enode * se, int rebuild
 
     case IF:
 
-    case '?':    return (eval(sh, NULL, se->e.o.left, rebuild_graph) ? seval(sh, ent, se->e.o.right->e.o.left, rebuild_graph) : seval(sh, ent, se->e.o.right->e.o.right, rebuild_graph));
+    case '?':    return (eval(sh, ent, se->e.o.left, rebuild_graph) ? seval(sh, ent, se->e.o.right->e.o.left, rebuild_graph) : seval(sh, ent, se->e.o.right->e.o.right, rebuild_graph));
 
     case DATE:   return (dodate( (time_t) (eval(sh, ent, se->e.o.left, rebuild_graph)), seval(sh, ent, se->e.o.right, rebuild_graph)));
 
@@ -766,7 +801,7 @@ struct ent * getent(struct sheet * sh, char * colstr, double rowdoub, int alloc)
  * \brief eval_fpe()
  * \return none
  */
-void eval_fpe() { /* Trap for FPE errors in eval */
+void eval_fpe(int signum) { /* Trap for FPE errors in eval */
 #if defined(i386)
     sc_debug("eval_fpe i386");
     asm("    fnclex");
@@ -787,7 +822,7 @@ void eval_fpe() { /* Trap for FPE errors in eval */
  * \param[in] arg
  * \return double
  */
-double fn1_eval(double (*fn)(), double arg) {
+double fn1_eval(double (*fn)(double), double arg) {
     double res;
     errno = 0;
     res = (*fn) (arg);
@@ -804,7 +839,7 @@ double fn1_eval(double (*fn)(), double arg) {
  * \param[in] arg2
  * \return double
  */
-double fn2_eval(double (*fn)(), double arg1, double arg2) {
+double fn2_eval(double (*fn)(double, double), double arg1, double arg2) {
     double res;
     errno = 0;
     res = (*fn) (arg1, arg2);
@@ -1454,7 +1489,7 @@ void let(struct roman * roman, struct sheet * sh, struct ent * v, struct enode *
 
     #ifdef UNDO
     extern struct ent_ptr * deps;
-    if (! roman->loading) {
+    if (! roman->loading) {   /*also skipped during lua script execution */
         create_undo_action();
         // here we save in undostruct, all the ents that depends on the deleted one (before change)
         ents_that_depends_on_range(sh, v->row, v->col, v->row, v->col);
@@ -1553,7 +1588,7 @@ void slet(struct roman * roman, struct sheet * sh, struct ent * v, struct enode 
 
     #ifdef UNDO
     extern struct ent_ptr * deps;
-    if (! roman->loading) {
+    if (! roman->loading) {  /*also skipped during lua script execution */
         // here we save in undostruct, all the ents that depends on the deleted one (before change)
         ents_that_depends_on_range(sh, v->row, v->col, v->row, v->col);
         create_undo_action();

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013-2021, Andrés Martinelli <andmarti@gmail.com>             *
+ * Copyright (c) 2013-2025, Andrés G. Martinelli <andmarti@gmail.com>          *
  * All rights reserved.                                                        *
  *                                                                             *
  * This file is a part of sc-im                                                *
@@ -17,16 +17,16 @@
  *    documentation and/or other materials provided with the distribution.     *
  * 3. All advertising materials mentioning features or use of this software    *
  *    must display the following acknowledgement:                              *
- *    This product includes software developed by Andrés Martinelli            *
+ *    This product includes software developed by Andrés G. Martinelli         *
  *    <andmarti@gmail.com>.                                                    *
- * 4. Neither the name of the Andrés Martinelli nor the                        *
+ * 4. Neither the name of the Andrés G. Martinelli nor the                     *
  *   names of other contributors may be used to endorse or promote products    *
  *   derived from this software without specific prior written permission.     *
  *                                                                             *
- * THIS SOFTWARE IS PROVIDED BY ANDRES MARTINELLI ''AS IS'' AND ANY            *
+ * THIS SOFTWARE IS PROVIDED BY ANDRÉS G. MARTINELLI ''AS IS'' AND ANY         *
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED   *
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE      *
- * DISCLAIMED. IN NO EVENT SHALL ANDRES MARTINELLI BE LIABLE FOR ANY           *
+ * DISCLAIMED. IN NO EVENT SHALL ANDRÉS G. MARTINELLI BE LIABLE FOR ANY        *
  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES  *
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;*
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND *
@@ -37,7 +37,7 @@
 
 /**
  * \file main.c
- * \author Andrés Martinelli <andmarti@gmail.com>
+ * \author Andrés G. Martinelli <andmarti@gmail.com>
  * \date 2021-05-22
  * \brief The main file of sc-im
  * \details This is the main file for sc-im.
@@ -591,13 +591,13 @@ void handle_argv_exports() {
  * \return none
  */
 void signals() {
-    void sig_int();
-    void sig_abrt();
-    void sig_term();
-    void sig_nopipe();
-    void sig_winchg();
-    void sig_tstp();
-    void sig_cont();
+    void sig_int(int signum);
+    void sig_abrt(int signum);
+    void sig_term(int signum);
+    void sig_nopipe(int signum);
+    void sig_winchg(int signum);
+    void sig_tstp(int signum);
+    void sig_cont(int signum);
 
     signal(SIGINT, sig_int);
     signal(SIGABRT, sig_abrt);
@@ -617,7 +617,7 @@ void signals() {
  * \brief Handles the SIGPIPE signal
  * \return none
  */
-void sig_nopipe() {
+void sig_nopipe(int signum) {
     sc_error("brokenpipe!");
     brokenpipe = TRUE;
     return;
@@ -628,7 +628,7 @@ void sig_nopipe() {
  * \brief Handles the SIGTSTP signal
  * \return none
  */
-void sig_tstp() {
+void sig_tstp(int signum) {
     //sc_info("Got SIGTSTP.");
     def_prog_mode();
     endwin();
@@ -641,9 +641,9 @@ void sig_tstp() {
  * \brief Handles the SIGCONT signal
  * \return none
  */
-void sig_cont() {
+void sig_cont(int signum) {
     signal(SIGTSTP, sig_tstp); /* set handler back to this */
-    sig_winchg();
+    sig_winchg(signum);
     reset_prog_mode();
     refresh();
     ui_update(TRUE);
@@ -655,7 +655,7 @@ void sig_cont() {
  * \brief Handles the SIGINT signal
  * \return none
  */
-void sig_int() {
+void sig_int(int signum) {
     sc_info("Got SIGINT.%s" , curmode != NORMAL_MODE ? " Back to NORMAL_MODE" : " Press «:q<Enter>» to quit sc-im");
     if (get_bufsize(buffer)) break_waitcmd_loop(buffer);
     if (curmode == VISUAL_MODE) exit_visualmode();
@@ -680,7 +680,7 @@ void sig_int() {
  * \brief Handles the SIGABRT signal
  * \return none
  */
-void sig_abrt() {
+void sig_abrt(int signum) {
     sc_error("Error !!! Quitting sc-im.");
     shall_quit = -1; // error !
     return;
@@ -691,7 +691,7 @@ void sig_abrt() {
  * \brief Handles the SIGABRT signal
  * \return none
  */
-void sig_term() {
+void sig_term(int signum) {
     sc_error("Got SIGTERM signal. Quitting sc-im.");
     shall_quit = 2;
     return;

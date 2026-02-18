@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013-2021, Andrés Martinelli <andmarti@gmail.com>             *
+ * Copyright (c) 2013-2025, Andrés G. Martinelli <andmarti@gmail.com>          *
  * All rights reserved.                                                        *
  *                                                                             *
  * This file is a part of sc-im                                                *
@@ -17,16 +17,16 @@
  *    documentation and/or other materials provided with the distribution.     *
  * 3. All advertising materials mentioning features or use of this software    *
  *    must display the following acknowledgement:                              *
- *    This product includes software developed by Andrés Martinelli            *
+ *    This product includes software developed by Andrés G. Martinelli         *
  *    <andmarti@gmail.com>.                                                    *
- * 4. Neither the name of the Andrés Martinelli nor the                        *
+ * 4. Neither the name of the Andrés G. Martinelli nor the                     *
  *   names of other contributors may be used to endorse or promote products    *
  *   derived from this software without specific prior written permission.     *
  *                                                                             *
- * THIS SOFTWARE IS PROVIDED BY ANDRES MARTINELLI ''AS IS'' AND ANY            *
+ * THIS SOFTWARE IS PROVIDED BY ANDRÉS G. MARTINELLI ''AS IS'' AND ANY         *
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED   *
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE      *
- * DISCLAIMED. IN NO EVENT SHALL ANDRES MARTINELLI BE LIABLE FOR ANY           *
+ * DISCLAIMED. IN NO EVENT SHALL ANDRÉS G. MARTINELLI BE LIABLE FOR ANY        *
  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES  *
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;*
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND *
@@ -37,7 +37,7 @@
 
 /**
  * \file file.c
- * \author Andrés Martinelli <andmarti@gmail.com>
+ * \author Andrés G. Martinelli <andmarti@gmail.com>
  * \date 2017-07-18
  * \brief TODO Write a brief file description.
  */
@@ -620,10 +620,17 @@ void write_fd(FILE * f, struct roman * doc) {
          * a single buffer that is overwritten on each call, so the first part
          * needs to be written to the file before making the second call.
          */
+
+        if((sh->next == NULL) && strcmp(sh->name,doc->cur_sh->name) != 0){
+            fprintf(f, "movetosheet \"%s\"\n", doc->cur_sh->name);
+            fprintf(f, "goto %s", v_name(doc->cur_sh->currow, doc->cur_sh->curcol));
+        fprintf(f, "\n");
+        } else {
+        //fprintf(f, " %s\n", v_name(strow, stcol));
         fprintf(f, "goto %s", v_name(sh->currow, sh->curcol));
         //fprintf(f, " %s\n", v_name(strow, stcol));
         fprintf(f, "\n");
-
+        }
         sh = sh->next;
     }
     // write marks of document
@@ -1583,7 +1590,7 @@ void export_markdown(char * fname, int r0, int c0, int rn, int cn) {
                 // Column alignment is bases on cell alignments of first row
                 if (row == 0) {
                     if (col == c0) strcat (dashline, "|");
-                    if (align == 0) {
+                    if (align == 0 || align == -1) {
                         strcat (dashline, ":");
                     } else {
                         strcat (dashline, "-");
@@ -2026,11 +2033,7 @@ int plugin_exists(char * name, int len, char * path) {
 }
 
 
-/**
- * \brief TODO Document do_autobackup()
- * \return none
- */
-void * do_autobackup() {
+void * do_autobackup(void *arg) {
     struct sheet  * sh = session->cur_doc->cur_sh;
     char * curfile = session->cur_doc->name;
     int len;
