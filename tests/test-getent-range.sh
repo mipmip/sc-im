@@ -12,6 +12,8 @@ SCIM=../src/sc-im
 valgrind --version
 ../src/sc-im --version
 
+echo "sc-im version"
+
 VALGRIND_CMD='valgrind -v --log-file=${NAME}_vallog --tool=memcheck --track-origins=yes --leak-check=full --show-leak-kinds=all --show-reachable=no'
 . assert.sh
 
